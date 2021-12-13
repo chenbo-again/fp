@@ -18,9 +18,9 @@ sealed trait Stream[+A] {
 	// ones.headOption.get 就可以验证正确性
 	
 	def toList: List[A] =
-		this match {
-			case Empty => Nil
-			case Cons(h, t) => h():: t().toList
+		unCons match {
+			case None => Nil
+			case Some((h, t)) => h:: t.toList
 		}
 	
 	def take(n: Int): Stream[A] =
@@ -102,7 +102,7 @@ sealed trait Stream[+A] {
 			case _ => None
 		}
 	
-	def startWith[B>: A](s: Stream[B]): Boolean =
+	def startWith[B>: A](s: => Stream[B]): Boolean =
 		unfold((this, s)) {
 			case (_, Empty)	=> None // 遍历完成
 			case (Cons(ha, la), Cons(hs, ls)) if ha() == hs() => Some(true, (la() ,ls()))

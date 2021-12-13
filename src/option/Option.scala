@@ -1,4 +1,4 @@
-package Option
+package option
 
 sealed trait Option[+A] {
 	def isEmpty: Boolean

@@ -1,6 +1,6 @@
 package practice
 
-import Option._
+import option._
 
 object ch4 {
 	// 4.1

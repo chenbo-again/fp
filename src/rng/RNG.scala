@@ -1,12 +1,15 @@
 package rng
 
+import scala.annotation.tailrec
+import scala.language.postfixOps
+
 trait RNG {
 	def nextInt: (Int, RNG)
 }
 
 case class SimpleRNG(seed: Long) extends RNG {
 	def nextInt: (Int, RNG) = {
-		val newSeed = (seed * 0x5DEECE66DL + 0xBL) & (0xFFFFFFFFFFFFL)
+		val newSeed = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
 		val nextRNG = SimpleRNG(newSeed)
 		val n = (newSeed >> 16).toInt
 		
@@ -16,7 +19,12 @@ case class SimpleRNG(seed: Long) extends RNG {
 
 object RNG extends {
 	type Rand[+A] = RNG => (A, RNG)
+	
+	// sugar for _: RNG => (A, _)
 	def unit[A](a: A): Rand[A] = a ->
+	
+	def int: Rand[Int] = _.nextInt
+	
 	def nonNegativeInt(rng: RNG): (Int, RNG) = {
 		val (n, rng1) = rng.nextInt
 		
@@ -55,6 +63,7 @@ object RNG extends {
 	}
 	
 	def ints(count: Int) (rng: RNG): (List[Int], RNG) = {
+		@tailrec
 		def go(cnt: Int, rng0: RNG, l: List[Int]): (List[Int], RNG) = {
 			if(cnt == 0) {
 				(l, rng0)
@@ -87,6 +96,7 @@ object RNG extends {
 		
 	def sequence[A] (fs: List[Rand[A]]): Rand[List[A]] =
 		rng => {
+			@tailrec
 			def go(lr: List[Rand[A]], rng1: RNG, l: List[A]): (List[A], RNG) = {
 				lr.headOption match {
 					case None => (l, rng1)
@@ -124,4 +134,16 @@ object RNG extends {
 					nonNegativeLessThan(n)
 			}
 		}
+		
+	// 6.9
+	
+	def mapByFlatMap[A,B](s: Rand[A])(f: A => B): Rand[B] =
+		flatMap(s){
+			a => unit(f(a))
+		}
+		
+	def map2ByFlatMap[A,B,C](ra: Rand[A], rb: Rand[B]) (f: (A, B) => C): Rand[C] =
+		flatMap(ra) (a => map(rb)(b => f(a, b)))
+		
+	
 }

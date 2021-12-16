@@ -1,8 +1,9 @@
 import practice.ch6._
-import rng._
+import rng.RNG._
+import state._
 
 object fp extends App{
-	val v = RNG.nonNegativeLessThan(10)(SimpleRNG(42))
-	println(v)
-	
+
+
+
 }

@@ -20,6 +20,7 @@ case class SimpleRNG(seed: Long) extends RNG {
 object RNG extends {
 	type Rand[+A] = RNG => (A, RNG)
 	
+	
 	// sugar for _: RNG => (A, _)
 	def unit[A](a: A): Rand[A] = a ->
 	
